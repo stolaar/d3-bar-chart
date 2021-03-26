@@ -4,7 +4,6 @@ import Axes from "./Axes";
 import Bars from "./Bar";
 
 function BarChart({data = [], parentWidth}){
-
         const margins = { top: 50, right: 10, bottom: 50, left: 40 }
         const svgDimensions = { width: Math.max(parentWidth, 400), height: 500 }
 
@@ -18,7 +17,6 @@ function BarChart({data = [], parentWidth}){
         const yScale = scaleLinear()
             .domain([0, maxValue + 10])
             .range([svgDimensions.height - margins.bottom, margins.top])
-
 
         return (
             <svg width={svgDimensions.width} height={svgDimensions.height}>

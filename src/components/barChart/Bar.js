@@ -1,8 +1,10 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import {scaleLinear} from 'd3-scale'
 import {interpolateLab} from 'd3-interpolate'
-
+import * as d3 from 'd3'
+const duration = 500
 function Bars({scales, margins, data, svgDimensions, maxValue, peakValue}) {
+    const ref = useRef({})
 
     const colorScale = scaleLinear()
         .domain([0, maxValue])
@@ -13,23 +15,34 @@ function Bars({scales, margins, data, svgDimensions, maxValue, peakValue}) {
     const {xScale, yScale} = scales
     const {height} = svgDimensions
 
-    const bars = (
-        data.map(datum =>
-            <rect
-                key={datum.label}
-                x={xScale(datum.label)}
-                y={yScale(datum.value) - 20}
-                height={height - margins.bottom - scales.yScale(datum.value)}
-                width={xScale.bandwidth()}
-                rx={'2%'}
-                ry={'2%'}
-                fill={peakValue === datum.value ? 'url(#g1)' : colorScale(datum.value)}
-            />,
+    useEffect(() => {
+        if(!ref.current) return
+        const chart = d3.select(ref.current);
+
+        chart.selectAll(".bar")
+        .data(data)
+        .join((enter) =>
+          enter
+            .append("rect")
+            .classed("bar", true)
+            .attr("y", (d) => yScale(0))
+            .attr("height", 0)
+            .attr('rx','2%')
+            .attr('rx','2%')
         )
-    )
+        .attr("x", (d) => xScale(d.label))
+        .style("fill", datum => peakValue === datum.value ? 'url(#g1)' : colorScale(datum.value))
+        .attr("width", (d) => xScale.bandwidth())
+        .transition()
+        .duration(duration)
+        .delay((d, i) => (i * duration) / 10)
+        .attr("height", (d) => height - margins.bottom - yScale(d.value))
+        .attr("y", (d) => yScale(d.value) - 20);
+
+    }, [data, peakValue, margins,colorScale, height, yScale, xScale])
 
     return (
-        <g>
+        <g ref={ref}>
             <defs>
                 <linearGradient id='g1' x2='0' y2='1'>
                     <stop stopColor='#5dc5f3'/>
@@ -39,7 +52,6 @@ function Bars({scales, margins, data, svgDimensions, maxValue, peakValue}) {
                     <stop offset='1' stopColor='#ad83f3'/>
                 </linearGradient>
             </defs>
-            {bars}
         </g>
     )
 }
