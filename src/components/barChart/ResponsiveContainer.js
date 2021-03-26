@@ -1,7 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react'
 import BarChart from "./BarChart";
 import useWindowSize from "../../hooks/useWindowsSize";
-
+import './ResponsiveContainer.css'
 
 function ResponsiveContainer(props) {
     const [containerWidth, setContainerWidth] = useState(null)

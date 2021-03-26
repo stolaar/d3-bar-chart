@@ -1,7 +1,9 @@
-import React, { useEffect, useRef } from 'react'
+import React, { Fragment, useEffect, useRef } from 'react'
 import {scaleLinear} from 'd3-scale'
 import {interpolateLab} from 'd3-interpolate'
 import * as d3 from 'd3'
+import d3Tip from 'd3-tip'
+
 const duration = 500
 function Bars({scales, margins, data, svgDimensions, maxValue, peakValue}) {
     const ref = useRef({})
@@ -19,19 +21,29 @@ function Bars({scales, margins, data, svgDimensions, maxValue, peakValue}) {
         if(!ref.current) return
         const chart = d3.select(ref.current);
 
+        const tip = d3Tip()
+        .attr('class', 'tooltip')
+        .offset([-10, 0])
+        .html((d) => {
+            return "<strong>Value:</strong> <span>" +( d.target.__data__ || {}).value + "</span>";
+        })
+        chart.call(tip)
         chart.selectAll(".bar")
         .data(data)
         .join((enter) =>
           enter
             .append("rect")
+            .attr('key', d => d.label + d.value)
             .classed("bar", true)
+            .attr("fill", datum => colorScale(datum.value))
             .attr("y", (d) => yScale(0))
             .attr("height", 0)
             .attr('rx','2%')
-            .attr('rx','2%')
+            .on('mouseover', tip.show)
+            .on('mouseout', tip.hide)
         )
         .attr("x", (d) => xScale(d.label))
-        .style("fill", datum => peakValue === datum.value ? 'url(#g1)' : colorScale(datum.value))
+        .style("fill", datum =>  datum.value >= peakValue ? 'url(#g1)' : colorScale(datum.value))
         .attr("width", (d) => xScale.bandwidth())
         .transition()
         .duration(duration)
@@ -42,6 +54,11 @@ function Bars({scales, margins, data, svgDimensions, maxValue, peakValue}) {
     }, [data, peakValue, margins,colorScale, height, yScale, xScale])
 
     return (
+        <Fragment>
+            <div className='tooltip'>
+
+            </div>
+       
         <g ref={ref}>
             <defs>
                 <linearGradient id='g1' x2='0' y2='1'>
@@ -53,6 +70,7 @@ function Bars({scales, margins, data, svgDimensions, maxValue, peakValue}) {
                 </linearGradient>
             </defs>
         </g>
+        </Fragment>
     )
 }
 
